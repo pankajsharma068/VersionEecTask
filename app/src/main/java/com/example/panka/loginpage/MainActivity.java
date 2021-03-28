@@ -14,12 +14,18 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
 
-     EditText emaileidit,passwordedit;
-      String email,password;
+     EditText usernameEdit,passwordedit;
+      String username,password;
        private FirebaseAuth mAuth;
 
 
@@ -33,9 +39,54 @@ public class MainActivity extends AppCompatActivity {
     }
     public void login(View view)
     {
-      email=emaileidit.getText().toString();
+      username=usernameEdit.getText().toString();
         password=passwordedit.getText().toString();
-        mAuth.signInWithEmailAndPassword(email, password)
+
+
+        DatabaseReference ref= FirebaseDatabase.getInstance().getReference("users");
+        Query chekuser=ref.orderByChild("college").equalTo(username);
+        chekuser.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+               if(dataSnapshot.exists())
+               {
+
+                   String passwordDB=dataSnapshot.child(username).child("password").getValue(String.class);
+
+                   if(passwordDB.equals(password))
+                   {
+                       Intent intent =new Intent(getApplicationContext(),NextPageActivity.class);
+                       startActivity(intent);
+
+
+                   }
+                   else
+                   {
+                       passwordedit.setError("wrong password");
+                        passwordedit.requestFocus();
+                   }
+               }
+               else
+               {
+                   usernameEdit.setError("No such user Exits");
+                   usernameEdit.requestFocus();
+               }
+
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+
+
+      /*  mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -54,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     }
-                });
+                });*/
 
 
     }
@@ -65,8 +116,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        emaileidit=(EditText)findViewById(R.id.email);
+        usernameEdit=(EditText)findViewById(R.id.email);
         passwordedit=(EditText)findViewById(R.id.password);
+
         mAuth=FirebaseAuth.getInstance();
     }
 
