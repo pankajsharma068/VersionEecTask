@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.io.BaseEncoding;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,27 +38,47 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    public void login(View view)
+    public void login(View view) throws Exception
     {
       username=usernameEdit.getText().toString();
         password=passwordedit.getText().toString();
 
 
         DatabaseReference ref= FirebaseDatabase.getInstance().getReference("users");
-        Query chekuser=ref.orderByChild("college").equalTo(username);
+        Query chekuser=ref.orderByChild("username").equalTo(username);
         chekuser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                if(dataSnapshot.exists())
                {
+                   for (DataSnapshot data : dataSnapshot.getChildren()) {
+                       System.out.println(data);
+                       String passwordEncoded = data.getValue(UserFirebase.class).getPassword();
+                       System.out.println(password);
+                       try {
+                           String decodedPassword = new String(BaseEncoding.base64().decode(passwordEncoded), "UTF-8");
+                           System.out.println(decodedPassword+ password.equals(decodedPassword));
+                           if (decodedPassword.equals(password)) {
+                               System.out.println("match");
+                               Intent intent = new Intent(getApplicationContext(), NextPageActivity.class);
+                               startActivity(intent);
+                           } else {
+                               System.out.println("not match");
+                               passwordedit.setError("wrong password");
+                               passwordedit.requestFocus();
+                           }
+                       } catch (Exception e){
+                           e.printStackTrace();
+                       }
+                   }
+                 /*  System.out.println(dataSnapshot.getChildren());
+                   String passwordDB=dataSnapshot.child("college").child("password").getValue(String.class);
+                   System.out.println(passwordDB+" "+password);*/
 
-                   String passwordDB=dataSnapshot.child(username).child("password").getValue(String.class);
-
-                   if(passwordDB.equals(password))
+                  /* if(passwordDB.equals(password))
                    {
-                       Intent intent =new Intent(getApplicationContext(),NextPageActivity.class);
-                       startActivity(intent);
+
 
 
                    }
@@ -65,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                    {
                        passwordedit.setError("wrong password");
                         passwordedit.requestFocus();
-                   }
+                   }*/
                }
                else
                {

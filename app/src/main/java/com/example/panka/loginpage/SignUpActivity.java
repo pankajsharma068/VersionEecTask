@@ -11,11 +11,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.io.BaseEncoding;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.Base64;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -27,7 +30,7 @@ public class SignUpActivity extends AppCompatActivity {
     DatabaseReference mref;
 
 
-    public void register(View view)
+    public void register(View view) throws Exception
     {
         email=signemail.getText().toString();
         password=signpassword.getText().toString();
@@ -71,8 +74,14 @@ public class SignUpActivity extends AppCompatActivity {
         }
                 database=FirebaseDatabase.getInstance();
                   mref=database.getReference("users");
-        user  users=new user(name,username,mobile,email,password);
+        String base64Password = BaseEncoding.base64().encode(password.getBytes("UTF-8"));
+
+        user  users=new user(name,username,mobile,email,base64Password);
         mref.child(mobile).setValue(users);
+        Toast.makeText(SignUpActivity.this,"Registered sucsessfully !",Toast.LENGTH_SHORT).show();
+        // Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+         //  startActivity(intent);
+
      /*   mAuth1.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
